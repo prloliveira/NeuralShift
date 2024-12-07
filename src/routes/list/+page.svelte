@@ -1,2 +1,33 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read t32131312312he documentation</p>
+<script context="module">
+  export let courtRulings = [];
+</script>
+
+<script>
+  import { onMount } from 'svelte';
+  let courtRulings = [];
+
+  onMount(async () => {
+    const response = await fetch('/api/court-rulings');
+    courtRulings = await response.json();
+  });
+</script>
+
+<h1>Court Rulings</h1>
+<table>
+	<thead>
+		<tr>
+			<th>ID</th>
+			<th>Process Number</th>
+			<th>Date</th>
+		</tr>
+	</thead>
+	<tbody>
+		{#each courtRulings as ruling}
+			<tr>
+				<td>{ruling.id}</td>
+				<td>{ruling.processNumber}</td>
+				<td>{ruling.date}</td>
+			</tr>
+		{/each}
+	</tbody>
+</table>
