@@ -1,10 +1,6 @@
-<script context="module">
-  export let courtRulings = [];
-</script>
-
 <script>
-  import { onMount } from 'svelte';
-  let courtRulings = [];
+    import { onMount } from 'svelte';
+    let courtRulings = $state();
 
   onMount(async () => {
     const response = await fetch('/api/court-rulings');

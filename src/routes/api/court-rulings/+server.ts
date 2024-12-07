@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { getCourtRulings } from '$lib/server/db';
 
+// GET /api/court-rulings
 export async function GET() {
   try {
     const courtRulings = await getCourtRulings();
@@ -10,4 +11,3 @@ export async function GET() {
     return json({ error: 'Failed to fetch court rulings' }, { status: 500 });
   }
 }
-
