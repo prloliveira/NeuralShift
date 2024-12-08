@@ -1,4 +1,4 @@
-import { courtRulings, caseDetails, lawReferences, judgeRapporteurs, courts, decisions } from '$lib/server/db/schema';
+import { courtRulings, lawReferences, judgeRapporteurs, courts, decisions, tags, courtRulingsTags } from '$lib/server/db/schema';
 import { db } from '$lib/server/db';
 import type { RequestHandler } from '@sveltejs/kit';
 
@@ -21,22 +21,35 @@ export const POST: RequestHandler = async ({ request }) => {
 
   const processNumber = extractProcessNumber(htmlContent);
   const caseDescription = extractCaseDescription(htmlContent);
-  const lawEntities = jsonData.filter((entity: any) => entity.label === 'LAW');
+  const judgeRapporteur = extractJudgeRapporteur(htmlContent);
+  const court = extractCourt(htmlContent);
+  const decision = extractDecision(htmlContent);
+  const lawEntities = jsonData;
+  const tagsList = extractDescritores(htmlContent);
+
+
 
   // Ensure valid foreign key references
-  const judgeRapporteurId = await getOrCreate(judgeRapporteurs, { name: 'Example Judge' });
-  const courtId = await getOrCreate(courts, { name: 'Example Court' });
-  const decisionId = await getOrCreate(decisions, { description: 'Example Decision' });
+  const judgeRapporteurId = await getOrCreate(judgeRapporteurs, { name: judgeRapporteur });
+  const courtId = await getOrCreate(courts, { name: court });
+  const decisionId = await getOrCreate(decisions, { description: decision });
 
-  const caseDetailsId = await db.insert(caseDetails).values({ description: caseDescription }).returning({ id: caseDetails.id });
   const courtRulingId = await db.insert(courtRulings).values({
     processNumber: processNumber,
     judgeRapporteur: judgeRapporteurId,
     court: courtId,
     decision: decisionId,
     date: new Date().toISOString(),
-    caseDetailsId: caseDetailsId[0].id
+    summary: caseDescription,
+
   }).returning({ id: courtRulings.id });
+
+  for (const tag of tagsList) {
+    await db.insert(courtRulingsTags).values({
+      tagId: await getOrCreate(tags, { name: tag }),
+      courtRulingId: courtRulingId[0].id
+    });
+  }
 
   for (const law of lawEntities) {
     await db.insert(lawReferences).values({
@@ -59,11 +72,35 @@ async function getOrCreate(table: any, values: any): Promise<number> {
 }
 
 function extractProcessNumber(htmlContent: string): string {
-  // Implement logic to extract process number from HTML content
-  return '1059/13.6TTCBR.C1.S1'; // Example value, replace with actual extraction logic
+  const processNumberMatch = htmlContent.match(/<b><font[^>]*color="#000080"[^>]*>([^<]*)<br>/);
+  return processNumberMatch ? processNumberMatch[1].trim() : 'Unknown';
 }
 
 function extractCaseDescription(htmlContent: string): string {
-  // Implement logic to extract case description from HTML content
-  return 'Example case description'; // Example value, replace with actual extraction logic
+  const caseDescriptionMatch = htmlContent.match(/Sum�rio :<\/font><\/b><\/td><td[^>]*><b><font[^>]*>([\s\S]*?)<\/font><\/td><\/tr>/);
+  return caseDescriptionMatch ? caseDescriptionMatch[1].replace(/<[^>]+>/g, '').trim() : 'No description available';
+}
+
+function extractJudgeRapporteur(htmlContent: string): string {
+  const judgeRapporteurMatch = htmlContent.match(/Relator:<\/font><\/b><\/td><td[^>]*bgcolor="#E0F1FF"><b><font size="2"> <\/font><\/b><b><font size="2" color="#000080">([^<]*)<\/font><\/b><\/td><\/tr>/);
+  return judgeRapporteurMatch ? judgeRapporteurMatch[1].trim() : 'Unknown';
+}
+
+function extractCourt(htmlContent: string): string {
+  const courtMatch = htmlContent.match(/<title>([^<]*)<\/title>/);
+  return courtMatch ? courtMatch[1].trim() : 'Unknown';
+}
+
+function extractDecision(htmlContent: string): string {
+  const decisionMatch = htmlContent.match(/Decis�o:<\/font><\/b><\/td><td width="74%" bgcolor="#E0F1FF"><font size="2"> <\/font><b><font size="2" color="#000080">([^<]*)<\/font><\/b><\/td><\/tr>/);
+  return decisionMatch ? decisionMatch[1].trim() : 'Unknown';
+}
+
+function extractDescritores(htmlContent: string): string[] {
+  const tagMatch = htmlContent.match(/Descritores:<\/font><\/b><\/td><td[^>]*bgcolor="#E0F1FF"><b><font size="2"> <\/font><\/b><b><font size="2" color="#000080">([\s\S]*?)<\/font><\/b><\/td><\/tr>/);
+  if (!tagMatch) {
+    return [];
+  }
+  const tags = tagMatch[1].split('<br>').map(tag => tag.trim());
+  return tags;
 }

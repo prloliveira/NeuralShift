@@ -14,10 +14,7 @@ export const courtRulings = pgTable("court_rulings", {
 	  .notNull()
 	  .references(() => decisions.id),
 	date: date("date").notNull(),
-	// New one-to-one relationships
-	caseDetailsId: integer("case_details_id")
-	  .notNull()
-	  .references(() => caseDetails.id)
+	summary: text("summary").notNull(),
 });
 
 // Judge rapporteurs table
@@ -55,12 +52,6 @@ export const courtRulingsTags = pgTable("court_rulings_tags", {
 	  .references(() => tags.id),
 });
 
-// Case details table
-// Summary of the case
-export const caseDetails = pgTable("case_details", {
-	id: serial("id").primaryKey(),
-	description: text("description").notNull(),
-});
 
 // Law references table
 // JSON File with references to the laws
