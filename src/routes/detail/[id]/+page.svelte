@@ -5,13 +5,25 @@
     export let ruling; // Declare ruling as a prop
 
     let fetchedRuling = ruling; // Separate variable for fetched data
+    let lawReferences = [];
 
     onMount(async () => {
         const id = $page.params.id;
         const response = await fetch(`/api/court-rulings/${id}`);
         const data = await response.json();
-        fetchedRuling = data
-        fetchedRuling.processText = data.processText.replace(/\r\n|\n/g, '<br>'); // Replace \n with <br>
+        fetchedRuling = data;
+
+        const lawResponse = await fetch(`/api/law-references?courtRulingId=${id}`);
+        lawReferences = await lawResponse.json();
+        console.log(lawReferences);
+
+        lawReferences.forEach(ref => {
+            const escapedName = ref.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special characters
+            const regex = new RegExp(`(?<!\\S)${escapedName.replace(/\s+/g, '\\s*')}(?!\\S)`, 'gi'); // Ignore \n and \r on both sides
+            fetchedRuling.processText = fetchedRuling.processText.replace(regex, match => `<a href="${ref.url}" style="color: blue; text-decoration: underline;">${match}</a>`);
+        });
+
+        fetchedRuling.processText = fetchedRuling.processText.replace(/\r|\n/g, '<br>'); // Replace \n with <br>
     });
 </script>
 

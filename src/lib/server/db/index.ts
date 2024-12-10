@@ -2,7 +2,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import { eq } from 'drizzle-orm';
 import postgres from 'postgres';
 import { env } from '$env/dynamic/private';
-import { courtRulings, courtRulingsTags, tags, courts, judgeRapporteurs, decisions } from './schema';
+import { courtRulings, courtRulingsTags, tags, courts, judgeRapporteurs, decisions, lawReferences } from './schema';
 
 if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
 const client = postgres(env.DATABASE_URL);
@@ -76,10 +76,21 @@ export async function getCourtRulingById(id: number) {
   const courtRuling = courtRulingResult[0];
   const tagsResult = await getTagsForCourtRuling(courtRuling.id);
 
-  console.log(courtRuling);
-
   return {
       ...courtRuling,
       tags: tagsResult
   };
+}
+
+export async function getLawReferencesByCourtRulingId(courtRulingId: number) {
+  const result = await db.select({
+    // Assuming lawReferences is a table in your schema
+    id: lawReferences.id,
+    name: lawReferences.name,
+    url: lawReferences.url
+  })
+  .from(lawReferences)
+  .where(eq(lawReferences.courtRulingId, courtRulingId));
+
+  return result;
 }

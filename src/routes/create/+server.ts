@@ -68,7 +68,6 @@ export const POST: RequestHandler = async ({ request }) => {
 
 async function getOrCreate(table: any, values: any): Promise<number> {
   const result = await db.select().from(table).where(eq(table.name, values.name)).execute();
-  console.log(values);
 
   if (result.length > 0) {
     return result[0].id;
