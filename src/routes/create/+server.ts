@@ -119,5 +119,10 @@ function extractDecisionDate(htmlContent: string): string {
 
 function extractProcessText(htmlContent: string): string {
   const processTextMatch = htmlContent.match(/Decisão Texto Integral:<\/font><\/b><\/td><td[^>]*bgcolor="#FFFFFF"><b><font size="2"> <\/font><\/b><font size="2" color="#000080">([\s\S]*?)<\/font><\/td><\/tr>/);
-  return processTextMatch ? processTextMatch[1].replace(/<[^>]+>/g, '').trim() : 'No process text available';
+  if (processTextMatch) {
+    return processTextMatch[1]
+      .replace(/<[^>]+>/g, '')
+      .trim();
+  }
+  return 'No process text available';
 }

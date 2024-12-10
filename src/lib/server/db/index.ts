@@ -2,8 +2,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import { eq } from 'drizzle-orm';
 import postgres from 'postgres';
 import { env } from '$env/dynamic/private';
-import { courtRulings, courtRulingsTags, tags, courts, judgeRapporteurs, decisions } from './schema'; // Include all necessary tables
-import iconv from 'iconv-lite'; // Import iconv-lite for encoding conversion
+import { courtRulings, courtRulingsTags, tags, courts, judgeRapporteurs, decisions } from './schema';
 
 if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
 const client = postgres(env.DATABASE_URL);
@@ -23,7 +22,7 @@ export async function getCourtRulings() {
     .from(courtRulings)
     .leftJoin(courts, eq(courts.id, courtRulings.court))
     .leftJoin(judgeRapporteurs, eq(judgeRapporteurs.id, courtRulings.judgeRapporteur))
-    .leftJoin(decisions, eq(decisions.id, courtRulings.decision)); // Include necessary joins
+    .leftJoin(decisions, eq(decisions.id, courtRulings.decision));
 
   const courtRulingsWithTags = await Promise.all(courtRulingsResult.map(async (courtRuling) => {
     const tagsResult = await getTagsForCourtRuling(courtRuling.id);
@@ -33,7 +32,6 @@ export async function getCourtRulings() {
     };
   }));
 
-  // Convert the output text to Western (Windows 1252) encoding
   const encodedResult = courtRulingsWithTags.map(courtRuling => {
     return {
       ...courtRuling,
@@ -65,7 +63,8 @@ export async function getCourtRulingById(id: number) {
       court: courts.name,
       decision: decisions.name,
       date: courtRulings.date,
-      summary: courtRulings.summary
+      summary: courtRulings.summary,
+      processText: courtRulings.processText
   })
   .from(courtRulings)
   .leftJoin(courts, eq(courts.id, courtRulings.court))
@@ -73,7 +72,6 @@ export async function getCourtRulingById(id: number) {
   .leftJoin(decisions, eq(decisions.id, courtRulings.decision))
   .where(eq(courtRulings.id, id))
   .limit(1);
-
 
   const courtRuling = courtRulingResult[0];
   const tagsResult = await getTagsForCourtRuling(courtRuling.id);
