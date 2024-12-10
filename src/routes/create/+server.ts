@@ -31,6 +31,7 @@ export const POST: RequestHandler = async ({ request }) => {
   const decisionDate = extractDecisionDate(htmlContent);
   const lawEntities = jsonData;
   const tagsList = extractDescritores(htmlContent);
+  const processText = extractProcessText(htmlContent);
 
   // Ensure valid foreign key references
   const judgeRapporteurId = await getOrCreate(judgeRapporteurs, { name: judgeRapporteur });
@@ -44,6 +45,7 @@ export const POST: RequestHandler = async ({ request }) => {
     decision: decisionId,
     date: decisionDate,
     summary: caseDescription,
+    processText: processText,
   }).returning({ id: courtRulings.id });
 
   for (const tag of tagsList) {
@@ -113,4 +115,9 @@ function extractDescritores(htmlContent: string): string[] {
 function extractDecisionDate(htmlContent: string): string {
   const dateMatch = htmlContent.match(/Data do Acordão:<\/font><\/b><\/td><td[^>]*bgcolor="#E0F1FF"><b><font size="2"> <\/font><\/b><b><font size="2" color="#000080">([^<]*)<\/font><\/b><\/td><\/tr>/);
   return dateMatch ? dateMatch[1].trim() : new Date().toISOString();
+}
+
+function extractProcessText(htmlContent: string): string {
+  const processTextMatch = htmlContent.match(/Decisão Texto Integral:<\/font><\/b><\/td><td[^>]*bgcolor="#FFFFFF"><b><font size="2"> <\/font><\/b><font size="2" color="#000080">([\s\S]*?)<\/font><\/td><\/tr>/);
+  return processTextMatch ? processTextMatch[1].replace(/<[^>]+>/g, '').trim() : 'No process text available';
 }

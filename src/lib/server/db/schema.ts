@@ -15,6 +15,7 @@ export const courtRulings = pgTable("court_rulings", {
 	  .references(() => decisions.id),
 	date: date("date").notNull(),
 	summary: text("summary").notNull(),
+	processText: text("process_text").notNull(),
 });
 
 // Judge rapporteurs table
