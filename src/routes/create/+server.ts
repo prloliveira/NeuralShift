@@ -1,6 +1,9 @@
 import { courtRulings, lawReferences, judgeRapporteurs, courts, decisions, tags, courtRulingsTags } from '$lib/server/db/schema';
 import { db } from '$lib/server/db';
 import type { RequestHandler } from '@sveltejs/kit';
+import iconv from 'iconv-lite';
+import { eq } from "drizzle-orm";
+
 
 export const POST: RequestHandler = async ({ request }) => {
   const formData = await request.formData();
@@ -11,7 +14,8 @@ export const POST: RequestHandler = async ({ request }) => {
     return new Response('Please upload both HTML and JSON files.', { status: 400 });
   }
 
-  const htmlContent = await htmlFile.text();
+  const htmlContentBuffer = Buffer.from(await htmlFile.arrayBuffer());
+  const htmlContent = iconv.decode(htmlContentBuffer, 'iso-8859-1');
   const jsonContent = await jsonFile.text();
   const jsonData = JSON.parse(jsonContent);
 
@@ -27,12 +31,10 @@ export const POST: RequestHandler = async ({ request }) => {
   const lawEntities = jsonData;
   const tagsList = extractDescritores(htmlContent);
 
-
-
   // Ensure valid foreign key references
   const judgeRapporteurId = await getOrCreate(judgeRapporteurs, { name: judgeRapporteur });
   const courtId = await getOrCreate(courts, { name: court });
-  const decisionId = await getOrCreate(decisions, { description: decision });
+  const decisionId = await getOrCreate(decisions, { name: decision });
 
   const courtRulingId = await db.insert(courtRulings).values({
     processNumber: processNumber,
@@ -41,7 +43,6 @@ export const POST: RequestHandler = async ({ request }) => {
     decision: decisionId,
     date: new Date().toISOString(),
     summary: caseDescription,
-
   }).returning({ id: courtRulings.id });
 
   for (const tag of tagsList) {
@@ -63,10 +64,13 @@ export const POST: RequestHandler = async ({ request }) => {
 };
 
 async function getOrCreate(table: any, values: any): Promise<number> {
-  const result = await db.select().from(table).where(values).limit(1).execute();
+  const result = await db.select().from(table).where(eq(table.name, values.name)).execute();
+  console.log(values);
+
   if (result.length > 0) {
     return result[0].id;
   }
+
   const insertResult = await db.insert(table).values(values).returning({ id: table.id }).execute();
   return insertResult[0].id;
 }
@@ -77,7 +81,7 @@ function extractProcessNumber(htmlContent: string): string {
 }
 
 function extractCaseDescription(htmlContent: string): string {
-  const caseDescriptionMatch = htmlContent.match(/Sum�rio :<\/font><\/b><\/td><td[^>]*><b><font[^>]*>([\s\S]*?)<\/font><\/td><\/tr>/);
+  const caseDescriptionMatch = htmlContent.match(/Sumário :<\/font><\/b><\/td><td[^>]*><b><font[^>]*>([\s\S]*?)<\/font><\/td><\/tr>/);
   return caseDescriptionMatch ? caseDescriptionMatch[1].replace(/<[^>]+>/g, '').trim() : 'No description available';
 }
 
@@ -92,7 +96,7 @@ function extractCourt(htmlContent: string): string {
 }
 
 function extractDecision(htmlContent: string): string {
-  const decisionMatch = htmlContent.match(/Decis�o:<\/font><\/b><\/td><td width="74%" bgcolor="#E0F1FF"><font size="2"> <\/font><b><font size="2" color="#000080">([^<]*)<\/font><\/b><\/td><\/tr>/);
+  const decisionMatch = htmlContent.match(/Decisão:<\/font><\/b><\/td><td width="74%" bgcolor="#E0F1FF"><font size="2"> <\/font><b><font size="2" color="#000080">([^<]*)<\/font><\/b><\/td><\/tr>/);
   return decisionMatch ? decisionMatch[1].trim() : 'Unknown';
 }
 

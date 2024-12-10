@@ -32,7 +32,7 @@ export const courts = pgTable("courts", {
 // Decisions table
 export const decisions = pgTable("decisions", {
 	id: serial("id").primaryKey(),
-	description: text("description").notNull(),
+	name: text("name").notNull(),
 });
 
 // Tags table
