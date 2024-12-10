@@ -28,6 +28,7 @@ export const POST: RequestHandler = async ({ request }) => {
   const judgeRapporteur = extractJudgeRapporteur(htmlContent);
   const court = extractCourt(htmlContent);
   const decision = extractDecision(htmlContent);
+  const decisionDate = extractDecisionDate(htmlContent);
   const lawEntities = jsonData;
   const tagsList = extractDescritores(htmlContent);
 
@@ -41,7 +42,7 @@ export const POST: RequestHandler = async ({ request }) => {
     judgeRapporteur: judgeRapporteurId,
     court: courtId,
     decision: decisionId,
-    date: new Date().toISOString(),
+    date: decisionDate,
     summary: caseDescription,
   }).returning({ id: courtRulings.id });
 
@@ -107,4 +108,9 @@ function extractDescritores(htmlContent: string): string[] {
   }
   const tags = tagMatch[1].split('<br>').map(tag => tag.trim());
   return tags;
+}
+
+function extractDecisionDate(htmlContent: string): string {
+  const dateMatch = htmlContent.match(/Data do Acordão:<\/font><\/b><\/td><td[^>]*bgcolor="#E0F1FF"><b><font size="2"> <\/font><\/b><b><font size="2" color="#000080">([^<]*)<\/font><\/b><\/td><\/tr>/);
+  return dateMatch ? dateMatch[1].trim() : new Date().toISOString();
 }
