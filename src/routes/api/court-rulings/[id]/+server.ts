@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { getCourtRulingById } from '$lib/server/db/index';
+import { getCourtRulingById, deleteCourtRulingById } from '$lib/server/db/index';
 
 export async function GET({ params }) {
     const id = parseInt(params.id, 10);
@@ -13,4 +13,15 @@ export async function GET({ params }) {
     }
 
     return json(courtRuling);
+}
+
+export async function DELETE({ params }) {
+    const id = parseInt(params.id, 10);
+    console.log(id);
+    if (isNaN(id)) {
+        return json({ error: 'Invalid ID' }, { status: 400 });
+    }
+
+    await deleteCourtRulingById(id);
+    return json({ message: 'Court ruling deleted successfully' });
 }

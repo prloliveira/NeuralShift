@@ -1,7 +1,12 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
 
   let htmlFile: File | null = null;
   let jsonFile: File | null = null;
+
+  function goBack() {
+    goto('/list');
+  }
 
   async function handleUpload() {
     if (!htmlFile || !jsonFile) {
@@ -27,15 +32,18 @@
 </script>
 
 <main class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+  <div class="flex justify-end mb-4">
+    <button onclick={goBack} class="bg-blue-500 text-white px-4 py-2 rounded">Back to List</button>
+  </div>
   <h1 class="text-2xl font-bold mb-6">Upload HTML and JSON Files</h1>
-  <form on:submit|preventDefault="{handleUpload}" class="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+  <form onsubmit="{handleUpload}" class="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
     <div class="mb-4">
       <label for="htmlFile" class="block text-gray-700 text-sm font-bold mb-2">HTML File</label>
-      <input id="htmlFile" type="file" accept=".html" on:change="{(e) => { const target = e.target as HTMLInputElement; if (target.files) htmlFile = target.files[0]; }}" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <input id="htmlFile" type="file" accept=".html" onchange="{(e) => { const target = e.target as HTMLInputElement; if (target.files) htmlFile = target.files[0]; }}" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
     </div>
     <div class="mb-4">
       <label for="jsonFile" class="block text-gray-700 text-sm font-bold mb-2">JSON File</label>
-      <input id="jsonFile" type="file" accept=".json" on:change="{(e) => { const target = e.target as HTMLInputElement; if (target.files) jsonFile = target.files[0]; }}" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <input id="jsonFile" type="file" accept=".json" onchange="{(e) => { const target = e.target as HTMLInputElement; if (target.files) jsonFile = target.files[0]; }}" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
     </div>
     <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Upload</button>
   </form>

@@ -1,6 +1,7 @@
 <script>
     import { onMount } from 'svelte';
     import { page } from '$app/stores';
+    import { goto } from '$app/navigation';
 
     export let ruling; // Declare ruling as a prop
 
@@ -21,13 +22,33 @@
             const escapedName = ref.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special characters
             const regex = new RegExp(`(${escapedName.replace(/\s+/g, '\\s*')})`, 'gi'); // Match even if there are additional characters before or after
             fetchedRuling.processText = fetchedRuling.processText.replace(regex, match => `<a href="${ref.url}" style="color: blue; text-decoration: underline;">${match}</a>`);
+            fetchedRuling.summary = fetchedRuling.summary.replace(regex, match => `<a href="${ref.url}" style="color: blue; text-decoration: underline;">${match}</a>`);
         });
 
         fetchedRuling.processText = fetchedRuling.processText.replace(/\r|\n/g, '<br>'); // Replace \n with <br>
+        fetchedRuling.summary = fetchedRuling.summary.replace(/\r|\n/g, '<br>'); // Replace \n with <br>
     });
+
+    async function deleteRuling() {
+        if (confirm('Are you sure you want to delete this court ruling?')) {
+            const id = $page.params.id;
+            await fetch(`/api/court-rulings/${id}`, {
+                method: 'DELETE'
+            });
+            goto('/list');
+        }
+    }
+
+    function goBack() {
+        goto('/list');
+    }
 </script>
 
 {#if fetchedRuling}
+<div class="flex justify-end space-x-4">
+    <button onclick={goBack} class="bg-blue-500 text-white px-4 py-2 rounded">Back to List</button>
+    <button onclick={deleteRuling} class="bg-red-500 text-white px-4 py-2 rounded">Delete</button>
+</div>
 <h1 class="text-3xl font-bold mb-6 text-center text-gray-900">Court Ruling Detail</h1>
 <div class="bg-white p-8 border border-gray-300 rounded-lg shadow-lg space-y-6">
     <div class="p-6 bg-gray-100 rounded-lg shadow-sm">

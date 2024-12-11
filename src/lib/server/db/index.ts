@@ -94,3 +94,9 @@ export async function getLawReferencesByCourtRulingId(courtRulingId: number) {
 
   return result;
 }
+
+export async function deleteCourtRulingById(id: number) {
+    const result = await db.delete(courtRulings)
+        .where(eq(courtRulings.id, id));
+    return result.length > 0;
+}

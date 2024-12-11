@@ -8,3 +8,19 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: mysecretpassword
       POSTGRES_DB: local
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  app:
+    build:
+      context: .
+    ports:
+      - "5173:5173" # Map the container's dev server port to the host
+    environment:
+      NODE_ENV: development
+    volumes:
+      - .:/app # Sync host files with the container
+      - /app/node_modules # Prevent overwriting of node_modules
+    command: npm run dev -- --host
+
+volumes:
+  db_data:

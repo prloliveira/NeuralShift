@@ -47,12 +47,11 @@ export const courtRulingsTags = pgTable("court_rulings_tags", {
 	id: serial("id").primaryKey(),
 	courtRulingId: integer("court_ruling_id")
 	  .notNull()
-	  .references(() => courtRulings.id),
+	  .references(() => courtRulings.id, { onDelete: 'cascade' }),
 	tagId: integer("tag_id")
 	  .notNull()
 	  .references(() => tags.id),
 });
-
 
 // Law references table
 // JSON File with references to the laws
@@ -62,7 +61,7 @@ export const lawReferences = pgTable("law_references", {
 	url: varchar("url", { length: 255 }).notNull(),
 	courtRulingId: integer("court_ruling_id")
 	  .notNull()
-	  .references(() => courtRulings.id),
+	  .references(() => courtRulings.id, { onDelete: 'cascade' }),
 	
 });
 

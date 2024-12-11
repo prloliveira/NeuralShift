@@ -1,38 +1,48 @@
-# sv
+---
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+# Project Setup and Development Guide
 
-## Creating a project
+Follow the steps below to set up and run the project:
 
-If you're seeing this, you've probably already done this step. Congrats!
+---
 
-```bash
-# create a new project in the current directory
-npx sv create
+## **Installation**
 
-# create a new project in my-app
-npx sv create my-app
-```
+1. Install dependencies:
+   ```bash
+   npm i
+   ```
 
-## Developing
+---
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## **Running the Application**
 
-```bash
-npm run dev
+1. Start the database and Svelte server:
+   ```bash
+   npm run db:start
+   ```
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+2. Apply database migrations:
+   ```bash
+   npm run db:push
+   ```
 
-## Building
+---
 
-To create a production version of your app:
+## **Useful Links**
 
-```bash
-npm run build
-```
+- **Create Page**: [http://localhost:5173/create](http://localhost:5173/create)
+- **List Page**: [http://localhost:5173/list](http://localhost:5173/list)
 
-You can preview the production build with `npm run preview`.
+---
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## **Optional**
+
+### Database Studio
+1. To open the database admin panel:
+   ```bash
+   npm run db:studio
+   ```
+2. Visit [https://local.drizzle.studio/](https://local.drizzle.studio/) to view and manage the database.
+
+---
