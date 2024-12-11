@@ -17,24 +17,26 @@
     }
 </script>
 
-<h1 class="text-2xl font-bold mb-4">Court Rulings</h1>
-<table class="min-w-full bg-white border border-gray-200">
-    <thead>
-        <tr>
-            <th class="py-2 px-4 border-b">Process Number</th>
-            <th class="py-2 px-4 border-b">Court</th>
-            <th class="py-2 px-4 border-b">Case Details</th>
-            <th class="py-2 px-4 border-b">Tags</th>
-        </tr>
-    </thead>
-    <tbody>
-        {#each courtRulings as ruling}
-            <tr class="hover:bg-gray-100 cursor-pointer" onclick={() => goToDetail(ruling.id)}>
-                <td class="py-2 px-4 border-b">{ruling.processNumber}</td>
-                <td class="py-2 px-4 border-b">{ruling.court}</td>
-                <td class="py-2 px-4 border-b">{ruling.summary}</td>
-                <td class="py-2 px-4 border-b">{ruling.tags.map(tag => tag).join(', ')}</td>
+<h1 class="text-3xl font-bold mb-6 text-center text-gray-900">Court Rulings</h1>
+<div class="overflow-x-auto">
+    <table class="min-w-full bg-white border border-gray-300 rounded-lg shadow-lg">
+        <thead class="bg-blue-100">
+            <tr>
+                <th class="py-3 px-6 border-b text-left text-blue-800">Processo</th>
+                <th class="py-3 px-6 border-b text-left text-blue-800">Tribunal</th>
+                <th class="py-3 px-6 border-b text-left text-blue-800">Sumário</th>
+                <th class="py-3 px-6 border-b text-left text-blue-800">Descritores</th>
             </tr>
-        {/each}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            {#each courtRulings as ruling}
+                <tr class="hover:bg-blue-100 cursor-pointer" onclick={() => goToDetail(ruling.id)}>
+                    <td class="py-3 px-6 border-b text-blue-700">{ruling.processNumber}</td>
+                    <td class="py-3 px-6 border-b text-blue-700">{ruling.court}</td>
+                    <td class="py-3 px-6 border-b text-blue-700">{@html ruling.summary}</td>
+                    <td class="py-3 px-6 border-b text-blue-700">{ruling.tags.map(tag => tag).join(', ')}</td>
+                </tr>
+            {/each}
+        </tbody>
+    </table>
+</div>

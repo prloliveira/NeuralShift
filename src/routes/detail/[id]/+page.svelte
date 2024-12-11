@@ -19,7 +19,7 @@
 
         lawReferences.forEach(ref => {
             const escapedName = ref.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special characters
-            const regex = new RegExp(`(?<!\\S)${escapedName.replace(/\s+/g, '\\s*')}(?!\\S)`, 'gi'); // Ignore \n and \r on both sides
+            const regex = new RegExp(`(${escapedName.replace(/\s+/g, '\\s*')})`, 'gi'); // Match even if there are additional characters before or after
             fetchedRuling.processText = fetchedRuling.processText.replace(regex, match => `<a href="${ref.url}" style="color: blue; text-decoration: underline;">${match}</a>`);
         });
 
@@ -28,19 +28,24 @@
 </script>
 
 {#if fetchedRuling}
-<h1 class="text-2xl font-bold mb-4">Court Ruling Detail</h1>
-<div class="bg-white p-4 border border-gray-200">
-    <p><strong>Processo:</strong> {fetchedRuling.processNumber}</p>
-    <p><strong>Relator:</strong> {fetchedRuling.judgeRapporteur}</p>
-    <p><strong>Tribunal:</strong> {fetchedRuling.court}</p>
-    <p><strong>Decisão:</strong> {fetchedRuling.decision}</p>
-    <p><strong>Data:</strong> {fetchedRuling.date}</p>
+<h1 class="text-3xl font-bold mb-6 text-center text-gray-900">Court Ruling Detail</h1>
+<div class="bg-white p-8 border border-gray-300 rounded-lg shadow-lg space-y-6">
+    <div class="p-6 bg-gray-100 rounded-lg shadow-sm">
+        <p class="mb-3 text-gray-800"><strong>Processo:</strong> {fetchedRuling.processNumber}</p>
+        <p class="mb-3 text-gray-800"><strong>Relator:</strong> {fetchedRuling.judgeRapporteur}</p>
+        <p class="mb-3 text-gray-800"><strong>Tribunal:</strong> {fetchedRuling.court}</p>
+        <p class="mb-3 text-gray-800"><strong>Decisão:</strong> {fetchedRuling.decision}</p>
+        <p class="mb-3 text-gray-800"><strong>Data:</strong> {fetchedRuling.date}</p>
+    </div>
     
-    <p><strong>Descritores:</strong> {fetchedRuling.tags ? fetchedRuling.tags.join(', ') : ''}</p>
-    <p><strong>Summary:</strong> {fetchedRuling.summary}</p>
+    <div class="p-6 bg-gray-100 rounded-lg shadow-sm">
+        <p class="mb-3 text-gray-800"><strong>Descritores:</strong> {fetchedRuling.tags ? fetchedRuling.tags.join(', ') : ''}</p>
+        <p class="mb-3 text-gray-800"><strong>Sumário:</strong> {@html fetchedRuling.summary}</p>
+    </div>
 
-    <!-- Decode HTML entities if necessary -->
-    <p><strong>Texto Principal:</strong> </p> 
-    <div>{@html fetchedRuling.processText}</div>
+    <div class="p-6 bg-gray-100 rounded-lg shadow-sm">
+        <p class="mb-3 text-gray-800"><strong>Texto Principal:</strong></p> 
+        <div class="prose max-w-none text-gray-800">{@html fetchedRuling.processText}</div>
+    </div>
 </div>
 {/if}

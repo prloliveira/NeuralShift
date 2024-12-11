@@ -19,7 +19,7 @@ export const POST: RequestHandler = async ({ request }) => {
   const jsonContent = await jsonFile.text();
   const jsonData = JSON.parse(jsonContent);
 
-  if (!Array.isArray(jsonData)) {
+  if (!Array.isArray(jsonData) && !(jsonData['entities'] && Array.isArray(jsonData['entities']))) {
     return new Response('Invalid JSON file format.', { status: 400 });
   }
 
@@ -29,7 +29,7 @@ export const POST: RequestHandler = async ({ request }) => {
   const court = extractCourt(htmlContent);
   const decision = extractDecision(htmlContent);
   const decisionDate = extractDecisionDate(htmlContent);
-  const lawEntities = jsonData;
+  const lawEntities = Array.isArray(jsonData) ? jsonData : jsonData['entities'];
   const tagsList = extractDescritores(htmlContent);
   const processText = extractProcessText(htmlContent);
 
@@ -43,7 +43,7 @@ export const POST: RequestHandler = async ({ request }) => {
     judgeRapporteur: judgeRapporteurId,
     court: courtId,
     decision: decisionId,
-    date: decisionDate,
+    date: decisionDate.toDateString(),
     summary: caseDescription,
     processText: processText,
   }).returning({ id: courtRulings.id });
@@ -83,12 +83,12 @@ function extractProcessNumber(htmlContent: string): string {
 }
 
 function extractCaseDescription(htmlContent: string): string {
-  const caseDescriptionMatch = htmlContent.match(/Sumário :<\/font><\/b><\/td><td[^>]*><b><font[^>]*>([\s\S]*?)<\/font><\/td><\/tr>/);
+  const caseDescriptionMatch = htmlContent.match(/Sumário\s*:<\/font><\/b><\/td><td[^>]*><b><font[^>]*>([\s\S]*?)<\/font><\/td><\/tr>/);
   return caseDescriptionMatch ? caseDescriptionMatch[1].replace(/<[^>]+>/g, '').trim() : 'No description available';
 }
 
 function extractJudgeRapporteur(htmlContent: string): string {
-  const judgeRapporteurMatch = htmlContent.match(/Relator:<\/font><\/b><\/td><td[^>]*bgcolor="#E0F1FF"><b><font size="2"> <\/font><\/b><b><font size="2" color="#000080">([^<]*)<\/font><\/b><\/td><\/tr>/);
+  const judgeRapporteurMatch = htmlContent.match(/Relator\s*:<\/font><\/b><\/td><td[^>]*bgcolor="#E0F1FF"><b><font size="2"> <\/font><\/b><b><font size="2" color="#000080">([^<]*)<\/font><\/b><\/td><\/tr>/);
   return judgeRapporteurMatch ? judgeRapporteurMatch[1].trim() : 'Unknown';
 }
 
@@ -98,12 +98,12 @@ function extractCourt(htmlContent: string): string {
 }
 
 function extractDecision(htmlContent: string): string {
-  const decisionMatch = htmlContent.match(/Decisão:<\/font><\/b><\/td><td width="74%" bgcolor="#E0F1FF"><font size="2"> <\/font><b><font size="2" color="#000080">([^<]*)<\/font><\/b><\/td><\/tr>/);
+  const decisionMatch = htmlContent.match(/Decisão\s*:<\/font><\/b><\/td><td width="74%" bgcolor="#E0F1FF"><font size="2"> <\/font><b><font size="2" color="#000080">([^<]*)<\/font><\/b><\/td><\/tr>/);
   return decisionMatch ? decisionMatch[1].trim() : 'Unknown';
 }
 
 function extractDescritores(htmlContent: string): string[] {
-  const tagMatch = htmlContent.match(/Descritores:<\/font><\/b><\/td><td[^>]*bgcolor="#E0F1FF"><b><font size="2"> <\/font><\/b><b><font size="2" color="#000080">([\s\S]*?)<\/font><\/b><\/td><\/tr>/);
+  const tagMatch = htmlContent.match(/Descritores\s*:<\/font><\/b><\/td><td[^>]*bgcolor="#E0F1FF"><b><font size="2"> <\/font><\/b><b><font size="2" color="#000080">([\s\S]*?)<\/font><\/b><\/td><\/tr>/);
   if (!tagMatch) {
     return [];
   }
@@ -111,13 +111,17 @@ function extractDescritores(htmlContent: string): string[] {
   return tags;
 }
 
-function extractDecisionDate(htmlContent: string): string {
-  const dateMatch = htmlContent.match(/Data do Acordão:<\/font><\/b><\/td><td[^>]*bgcolor="#E0F1FF"><b><font size="2"> <\/font><\/b><b><font size="2" color="#000080">([^<]*)<\/font><\/b><\/td><\/tr>/);
-  return dateMatch ? dateMatch[1].trim() : new Date().toISOString();
+function extractDecisionDate(htmlContent: string): Date {
+  const dateMatch = htmlContent.match(/Data do Acordão\s*:<\/font><\/b><\/td><td[^>]*bgcolor="#E0F1FF"><b><font size="2"> <\/font><\/b><b><font size="2" color="#000080">([^<]*)<\/font><\/b><\/td><\/tr>/);
+  if (dateMatch) {
+    const [day, month, year] = dateMatch[1].trim().split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
+  return new Date();
 }
 
 function extractProcessText(htmlContent: string): string {
-  const processTextMatch = htmlContent.match(/Decisão Texto Integral:<\/font><\/b><\/td><td[^>]*bgcolor="#FFFFFF"><b><font size="2"> <\/font><\/b><font size="2" color="#000080">([\s\S]*?)<\/font><\/td><\/tr>/);
+  const processTextMatch = htmlContent.match(/Decisão Texto Integral\s*:<\/font><\/b><\/td><td[^>]*bgcolor="#FFFFFF"><b><font size="2"> <\/font><\/b><font size="2" color="#000080">([\s\S]*?)<\/font><\/td><\/tr>/);
   if (processTextMatch) {
     return processTextMatch[1]
       .replace(/<[^>]+>/g, '')
